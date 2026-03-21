@@ -93,8 +93,14 @@ yarn dev
 
 ### Event Bus Usage
 1. Publish Event
+
+```bash
 publish("test.event", { message: "Hello World" });
+```
 2. Subscribe to Event
+
+```bash
 subscribe("test.event", (data) => {
   console.log("Received:", data);
 });
+```
