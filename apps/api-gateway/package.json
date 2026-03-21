@@ -10,7 +10,8 @@
     "cors": "^2.8.5",
     "body-parser": "^1.20.2",
     "@ai-code-review-platform/event-bus": "*",
-    "@ai-code-review-platform/logger": "*"
+    "@ai-code-review-platform/logger": "*",
+    "@ai-code-review-platform/contracts": "*"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",

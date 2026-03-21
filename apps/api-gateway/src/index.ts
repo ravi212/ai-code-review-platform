@@ -3,6 +3,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import { publish } from "@ai-code-review-platform/event-bus";
 import { logger } from "@ai-code-review-platform/logger";
+import { EVENTS } from "@ai-code-review-platform/contracts";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,7 +18,7 @@ app.get("/health", (_req, res) => {
 app.post("/submit-code", async (req, res) => {
   const payload = req.body;
 
-  await publish("code.submitted", payload);
+  await publish(EVENTS.CODE_SUBMITTED, payload);
 
   logger.info("Code submitted event published");
 
