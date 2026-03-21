@@ -1,0 +1,11 @@
+{
+  "name": "ai-code-review-platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
+  "scripts": {
+    "dev": "yarn workspace api-gateway dev"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "@ai-code-review-platform/event-bus",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "ioredis": "^5.10.1"
+  }
+}
