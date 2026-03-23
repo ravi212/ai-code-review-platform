@@ -1,0 +1,18 @@
+{
+  "name": "code-processor",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "ts-node src/index.ts"
+  },
+  "dependencies": {
+    "@ai-code-review-platform/event-bus": "*",
+    "@ai-code-review-platform/logger": "*",
+    "@ai-code-review-platform/contracts": "*"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "@types/node": "^20.0.0"
+  }
+}

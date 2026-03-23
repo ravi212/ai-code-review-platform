@@ -11,11 +11,11 @@ const sub = new Redis({
 });
 
 // ---- Connection Logging ----
-pub.on("connect", () => console.log("📤 Redis Publisher Connected"));
-sub.on("connect", () => console.log("📥 Redis Subscriber Connected"));
+pub.on("connect", () => console.log("Redis Publisher Connected"));
+sub.on("connect", () => console.log("Redis Subscriber Connected"));
 
-pub.on("error", (err) => console.error("❌ Publisher Error:", err.message));
-sub.on("error", (err) => console.error("❌ Subscriber Error:", err.message));
+pub.on("error", (err) => console.error("Publisher Error:", err.message));
+sub.on("error", (err) => console.error("Subscriber Error:", err.message));
 
 // ---- Internal Handler Map (IMPORTANT) ----
 const handlers: Record<string, ((data: any) => void)[]> = {};
@@ -24,9 +24,9 @@ const handlers: Record<string, ((data: any) => void)[]> = {};
 export const publish = async (event: string, data: any) => {
   try {
     await pub.publish(event, JSON.stringify(data));
-    console.log(`📢 Event Published → ${event}`);
+    console.log(`Event Published → ${event}`);
   } catch (err) {
-    console.error(`❌ Failed to publish event ${event}:`, err);
+    console.error(`Failed to publish event ${event}:`, err);
   }
 };
 
@@ -39,9 +39,9 @@ export const subscribe = (event: string, callback: (data: any) => void) => {
     // Subscribe only once per event
     sub.subscribe(event, (err) => {
       if (err) {
-        console.error(`❌ Failed to subscribe to ${event}:`, err);
+        console.error(`Failed to subscribe to ${event}:`, err);
       } else {
-        console.log(`✅ Subscribed to ${event}`);
+        console.log(`Subscribed to ${event}`);
       }
     });
   }
@@ -49,7 +49,7 @@ export const subscribe = (event: string, callback: (data: any) => void) => {
   handlers[event].push(callback);
 };
 
-// ---- Global Message Listener (IMPORTANT) ----
+// ---- Global Message Listener ----
 sub.on("message", (channel, message) => {
   const eventHandlers = handlers[channel];
 
@@ -60,6 +60,6 @@ sub.on("message", (channel, message) => {
 
     eventHandlers.forEach((handler) => handler(data));
   } catch (err) {
-    console.error(`❌ Failed to process message for ${channel}:`, err);
+    console.error(`Failed to process message for ${channel}:`, err);
   }
 });

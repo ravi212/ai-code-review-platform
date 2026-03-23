@@ -7,6 +7,7 @@
   ],
   "scripts": {
     "build:contracts": "yarn workspace @ai-code-review-platform/contracts build",
-    "dev": "yarn build:contracts && yarn workspace api-gateway dev"
+    "dev": "yarn build:contracts && yarn workspace api-gateway dev",
+    "dev:processor": "yarn workspace code-processor dev"
   }
 }
