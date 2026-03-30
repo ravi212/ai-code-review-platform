@@ -1,12 +1,11 @@
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
-import { publish } from "@ai-code-review-platform/event-bus";
 import { logger } from "@ai-code-review-platform/logger";
-import { CodeJob, EVENTS } from "@ai-code-review-platform/contracts";
+import { CodeJob } from "@ai-code-review-platform/contracts";
 import { randomUUID } from "crypto";
 import { createJob, getJob } from "./db";
-
+import { codeQueue } from "@ai-code-review-platform/queue";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -17,7 +16,7 @@ app.get("/health", (_req, res) => {
   res.json({ status: "API Gateway running" });
 });
 
-app.post("/submit-code", (req, res) => {
+app.post("/submit-code", async (req, res) => {
   const { code } = req.body;
 
   const jobId = randomUUID();
@@ -30,19 +29,39 @@ app.post("/submit-code", (req, res) => {
 
   createJob(job);
 
-  publish(EVENTS.CODE_SUBMITTED, job);
+  const bullJob = await codeQueue.add("process-code", job, {
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 2000,
+    },
+  });
 
-  res.json({ jobId });
+  codeQueue.getJob(jobId).then((job) => {
+    job?.updateData({ ...job.data, queueId: bullJob.id });
+  });
+
+  res.json({ jobId, queueId: bullJob.id });
 });
 
-app.get("/job/:id", (req, res) => {
-  const job = getJob(req.params.id);
+app.get("/job/:id", async (req, res) => {
+  const job = await codeQueue.getJob(req.params.id);
+  console.log("Fetching job from queue with ID:", req.params.id);
+  console.log("Fetched job from queue:", job?.id);
+  console.log("Job:", job);
 
   if (!job) {
     return res.status(404).json({ error: "Job not found" });
   }
 
-  res.json(job);
+  const state = await job.getState();
+
+  res.json({
+    id: job.id,
+    state,
+    result: job.returnvalue || null,
+    failedReason: job.failedReason || null,
+  });
 });
 
 app.listen(PORT, () => {
