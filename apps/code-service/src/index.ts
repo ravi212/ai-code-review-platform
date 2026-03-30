@@ -1,10 +1,10 @@
-import { subscribe } from "@ai-code-review-platform/event-bus";
+import { publish, subscribe } from "@ai-code-review-platform/event-bus";
 import { logger } from "@ai-code-review-platform/logger";
-import { EVENTS } from "@ai-code-review-platform/contracts";
+import { CodeJob, EVENTS } from "@ai-code-review-platform/contracts";
 
 console.log("Code Processor Started");
 
-// Graceful error handling (IMPORTANT)
+// Graceful error handling
 process.on("uncaughtException", (err: any) => {
   logger.error("Uncaught Exception:", err);
 });
@@ -13,34 +13,35 @@ process.on("unhandledRejection", (err: any) => {
   logger.error("Unhandled Rejection:", err);
 });
 
-// Subscribe to event
-subscribe(EVENTS.CODE_SUBMITTED, async (data) => {
-  logger.info("Event received: code.submitted");
+subscribe(EVENTS.CODE_SUBMITTED, async (job: CodeJob) => {
+  logger.info(`📥 Job received: ${job.jobId}`);
 
   try {
-    const { code } = data;
+    // mark processing
+    publish(EVENTS.CODE_PROCESSED, {
+      jobId: job.jobId,
+      status: "processing"
+    });
 
-    logger.info(`Processing code: ${code}`);
+    const result = analyzeCode(job.code);
 
-    const result = analyzeCode(code);
+    publish(EVENTS.CODE_PROCESSED, {
+      jobId: job.jobId,
+      status: "completed",
+      result
+    });
 
-    logger.info(`Result: ${result}`);
-  } catch (error: any) {
-    logger.error("Processing failed:", error);
+  } catch (err) {
+    publish(EVENTS.CODE_PROCESSED, {
+      jobId: job.jobId,
+      status: "failed"
+    });
   }
 });
 
-// Fake analyzer (temporary)
 function analyzeCode(code: string): string {
-  if (!code) return "Empty code";
-
   if (code.includes("console.log")) {
-    return "Remove console.log before production";
+    return "Remove console.log";
   }
-
-  if (code.length < 10) {
-    return "Code too short";
-  }
-
-  return "Code looks fine";
+  return "Clean code";
 }

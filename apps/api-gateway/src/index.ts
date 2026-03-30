@@ -3,7 +3,9 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import { publish } from "@ai-code-review-platform/event-bus";
 import { logger } from "@ai-code-review-platform/logger";
-import { EVENTS } from "@ai-code-review-platform/contracts";
+import { CodeJob, EVENTS } from "@ai-code-review-platform/contracts";
+import { randomUUID } from "crypto";
+import { createJob, getJob } from "./db";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,14 +17,32 @@ app.get("/health", (_req, res) => {
   res.json({ status: "API Gateway running" });
 });
 
-app.post("/submit-code", async (req, res) => {
-  const payload = req.body;
+app.post("/submit-code", (req, res) => {
+  const { code } = req.body;
 
-  await publish(EVENTS.CODE_SUBMITTED, payload);
+  const jobId = randomUUID();
 
-  logger.info("Code submitted event published");
+  const job: CodeJob = {
+    jobId,
+    code,
+    status: "pending",
+  };
 
-  res.json({ status: "queued" });
+  createJob(job);
+
+  publish(EVENTS.CODE_SUBMITTED, job);
+
+  res.json({ jobId });
+});
+
+app.get("/job/:id", (req, res) => {
+  const job = getJob(req.params.id);
+
+  if (!job) {
+    return res.status(404).json({ error: "Job not found" });
+  }
+
+  res.json(job);
 });
 
 app.listen(PORT, () => {
